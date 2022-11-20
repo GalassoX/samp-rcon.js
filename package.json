@@ -1,0 +1,24 @@
+{
+  "name": "samp-rcon.js",
+  "version": "1.0.0",
+  "description": "Rcon Client for SA:MP servers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GalassoX/samp-rcon.js.git"
+  },
+  "keywords": [
+    "rcon",
+    "samp",
+    "rcon-client"
+  ],
+  "author": "GalassoX",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GalassoX/samp-rcon.js/issues"
+  },
+  "homepage": "https://github.com/GalassoX/samp-rcon.js#readme"
+}
