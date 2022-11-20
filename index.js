@@ -134,6 +134,35 @@ class SampClient {
 
         return players;
     }
+
+    async getServerRules() {
+        this.#opcode = 'r';
+        const response = (await this.send()).subarray(11);
+
+        let offset = 0;
+        let object = {};
+        let prop, value;
+
+        let rulecount = response.readUInt16LE(offset);
+        offset += 2;
+
+        while (rulecount > 0) {
+            let strlen = response.readUInt8(offset);
+            ++offset;
+
+            prop = decode(response.subarray(offset, offset += strlen));
+
+            strlen = response.readUInt8(offset);
+            ++offset;
+
+            value = decode(response.subarray(offset, offset += strlen));
+
+            object[prop] = value;
+
+            rulecount--;
+        }
+        return object;
+    }
 }
 
 const decode = (buffer) => {
