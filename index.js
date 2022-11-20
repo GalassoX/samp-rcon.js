@@ -12,7 +12,6 @@ class SampClient {
     constructor(ip, port) {
         this.ip = ip;
         this.port = port;
-        this.socket = createSocket('udp4');
         this.#opcode = '';
         this.password = '';
         this.#command = '';
@@ -40,21 +39,23 @@ class SampClient {
             this.packet = Buffer.from(this.#responsePrefix, 'binary');
         }
 
-        try {
-            this.socket.send(this.packet, 0, this.packet.length, this.port, this.ip);
-        } catch (e) {
-            console.warn(e);
-        }
-
-        const controller = setTimeout(() => {
-            this.socket.close();
-            console.warn(`[Error] no se pudo conectar.`);
-        }, 2000);
+        const socket = createSocket('udp4');
 
         return new Promise((resolve, reject) => {
-            this.socket.on('message', (message) => {
+            const controller = setTimeout(() => {
+                socket.close();
+                console.warn(`[Error] no se pudo conectar.`);
+            }, 2000);
+
+            try {
+                socket.send(this.packet, 0, this.packet.length, this.port, this.ip);
+            } catch (e) {
+                console.warn(e);
+            }
+
+            socket.on('message', (message) => {
                 if (controller) clearTimeout(controller);
-                this.socket.close();
+                socket.close();
                 resolve(message);
             });
         })
@@ -75,7 +76,7 @@ class SampClient {
         let offset = 0;
         let info = {};
 
-        info.passworded = response.readUInt8(offset);
+        info.passworded = Boolean(response.readUInt8(offset));
         offset += 1;
 
         info.players = response.readUInt16LE(offset);
@@ -99,12 +100,41 @@ class SampClient {
 
         info.mapname = decode(response.subarray(offset, offset += strlen));
 
-        console.log(info)
         return info;
     }
 
-    getUsers() {
-        this.#opcode = ''
+    async getUsers() {
+        this.#opcode = 'd';
+        const response = (await this.send()).subarray(11);
+
+        let offset = 0;
+        let players = [];
+
+        let numPlayers = response.readUInt16LE(offset);
+        offset += 2;
+
+        while (numPlayers > 0) {
+            let player = {};
+
+            player.id = response.readUInt8(offset);
+            ++offset;
+
+            let strlen = response.readUInt8(offset);
+            ++offset;
+
+            player.name = decode(response.subarray(offset, offset += strlen));
+
+            player.score = response.readUInt16LE(offset);
+            offset += 4;
+
+            player.ping = response.readUInt16LE(offset);
+            offset += 4;
+
+            players.push(player);
+            numPlayers--;
+        }
+
+        return players;
     }
 }
 
