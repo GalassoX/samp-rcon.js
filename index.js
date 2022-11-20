@@ -65,9 +65,7 @@ class SampClient {
         this.#opcode = 'x';
         this.#command = command;
         const response = await this.send();
-        if (response.toString('binary', 0, 11) === this.#responsePrefix) {
-            return response.toString('binary', 13);
-        }
+        return response.toString('binary', 13);
     }
     async getInfo() {
         this.#opcode = 'i';
